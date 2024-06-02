@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <iterator>
 #include <memory>
+#include <traversals/ast_base_postorder_traversal.hpp>
 #include <vector>
 
 namespace paracl {
@@ -10,12 +11,12 @@ namespace ast {
 
 struct Node {
   void add_child(Node *child) {
-    if (is_leaf) {
-      is_leaf = false;
-      child->is_last = true;
+    if (_is_leaf) {
+      _is_leaf = false;
+      child->_is_last = true;
     } else {
       child->set_idx(children.back()->get_idx() + 1);
-      children.back()->is_last = false;
+      children.back()->_is_last = false;
     }
 
     child->set_parent(this);
@@ -26,24 +27,28 @@ struct Node {
   [[nodiscard]] const std::vector<Node *> get_children() const {
     return children;
   }
-  const Node *get_parent() const { return parent; }
+  [[nodiscard]] const Node *get_parent() const { return parent; }
   [[nodiscard]] size_t get_idx() const { return idx; }
   [[nodiscard]] size_t get_depth() const { return depth; }
 
-  const bool islast() const { return is_last; }
-  const bool isleaf() const { return is_leaf; }
+  [[nodiscard]] const bool is_last() const { return _is_last; }
+  [[nodiscard]] const bool is_leaf() const { return _is_leaf; }
 
   void set_parent(Node *parent_node) { parent = parent_node; }
   void set_idx(size_t _idx) { idx = _idx; }
   void set_depth(size_t _depth) { depth = _depth; }
+
+  virtual void accept(traversals::AstBasePostorderTraversal *visitor) const {
+    throw std::logic_error("Can't accept the visitor for the base node");
+  }
 
   virtual ~Node() = default;
 
 private:
   Node *parent = nullptr;
   std::vector<Node *> children;
-  bool is_last = true;
-  bool is_leaf = true;
+  bool _is_last = true;
+  bool _is_leaf = true;
 
   size_t idx = 0;
   size_t depth = 0;
@@ -58,30 +63,30 @@ public:
     using pointer = const Node *;
     using reference = const Node &;
 
-    Iterator(const Ast &ast) : node{ast.root} {}
+    Iterator(const Ast &ast) {
+      node = ast.root;
+      while (!node->is_leaf())
+        node = node->get_children()[0];
+    }
     Iterator() : node{nullptr} {}
     Iterator(const Iterator &it) = default;
+    Iterator &operator=(const Iterator &it) = default;
 
-    const value_type operator*() const { return *node; }
-    value_type operator*() { return *node; }
-    bool operator==(const Iterator &rhs) const { return node == rhs.node; }
+    [[nodiscard]] const value_type operator*() const { return *node; }
+    [[nodiscard]] value_type operator*() { return *node; }
+    [[nodiscard]] bool operator==(const Iterator &rhs) const {
+      return node == rhs.node;
+    }
 
     Iterator &operator++() {
-      if (!node->get_children().empty()) {
-        node = node->get_children().front();
-      } else {
-        while (node->islast()) {
-          node = node->get_parent();
-
-          if (node->get_parent() == nullptr) {
-            node = nullptr;
-            return *this;
-          }
-        }
-
-        node = (node->get_parent()->get_children())[node->get_idx() + 1];
+      if (node->is_last()) {
+        node = node->get_parent();
       }
 
+      node = (node->get_parent()->get_children())[node->get_idx() + 1];
+
+      while (!node->is_leaf())
+        node = node->get_children()[0];
       return *this;
     }
 
@@ -100,13 +105,13 @@ public:
     nodes.push_back(std::move(child));
   }
 
-  Iterator begin() { return Iterator(*this); }
-  Iterator end() { return Iterator(); }
+  [[nodiscard]] Iterator begin() { return Iterator(*this); }
+  [[nodiscard]] Iterator end() { return Iterator(); }
 
 private:
   std::vector<std::unique_ptr<Node>> nodes;
   Node *root;
 };
 
-}; // namespace ast
-}; // namespace paracl
+} // namespace ast
+} // namespace paracl
