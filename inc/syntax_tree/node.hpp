@@ -75,24 +75,8 @@ struct UnaryOperator final : public Operator {
   void accept(NodeVisitor *visitor) const override { visitor->visit(this); }
 };
 
-struct Number : public Node {};
-
-struct Integer final : public Number {
-  Integer(const int &value) : value{value} {}
-  int value;
-
-  void accept(NodeVisitor *visitor) const override { visitor->visit(this); }
-};
-
-struct Float final : public Number {
-  Float(const float &value) : value{value} {}
-  float value;
-
-  void accept(NodeVisitor *visitor) const override { visitor->visit(this); }
-};
-
-struct Double final : public Number {
-  Double(const double &value) : value{value} {}
+struct Number final : public Node {
+  Number(const double &value) : value{value} {}
   double value;
 
   void accept(NodeVisitor *visitor) const override { visitor->visit(this); }

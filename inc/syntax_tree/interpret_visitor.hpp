@@ -1,44 +1,57 @@
 #pragma once
 
-#include <iostream>
 #include <stdexcept>
 #include <syntax_tree/node.hpp>
 namespace paracl {
 namespace ast {
 
-class DumpVisitor final : public NodeVisitor {
+class InterpretVisitor final : public NodeVisitor {
+private:
+  std::vector<double> st;
 
 public:
   void visit(const BinaryOperator *node) override {
+
+    double operand1 = st.back();
+    st.pop_back();
+    double operand2 = st.back();
+    st.pop_back();
+
     switch (node->op) {
     case BinaryOperatorEnum::PLUS:
-      std::cout << " + ";
+      st.push_back(operand1 + operand2);
       break;
     case BinaryOperatorEnum::MINUS:
-      std::cout << " - ";
+      st.push_back(operand1 - operand2);
       break;
     case BinaryOperatorEnum::MULTIPLY:
-      std::cout << " * ";
+      st.push_back(operand1 * operand2);
       break;
     case BinaryOperatorEnum::DIVIDE:
-      std::cout << " / ";
+      st.push_back(operand1 / operand2);
       break;
     default:
       throw std::logic_error("Unknown Binary operator type in Dump Visitor");
+      break;
     }
   }
 
   void visit(const UnaryOperator *node) override {
+    double val = st.back();
     switch (node->op) {
     case UnaryOperatorEnum::MINUS:
-      std::cout << " - ";
+      st.pop_back();
+      st.push_back(-val);
       break;
     default:
       throw std::logic_error("Unknown Unary operator type in Dump Visitor");
+      break;
     }
   }
 
-  void visit(const Number *node) override { std::cout << node->value << " "; }
+  void visit(const Number *node) override { st.push_back(node->value); }
+
+  double get_result() { return st.back(); }
 };
 
 } // namespace ast
