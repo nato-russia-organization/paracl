@@ -17,10 +17,10 @@ public:
     case BinaryOperatorEnum::MINUS:
       std::cout << " - ";
       break;
-    case BinaryOperatorEnum::MULTIPLY:
+    case BinaryOperatorEnum::MUL:
       std::cout << " * ";
       break;
-    case BinaryOperatorEnum::DIVIDE:
+    case BinaryOperatorEnum::DIV:
       std::cout << " / ";
       break;
     default:

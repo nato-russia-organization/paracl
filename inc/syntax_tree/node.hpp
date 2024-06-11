@@ -9,7 +9,7 @@
 namespace paracl {
 namespace ast {
 
-enum class BinaryOperatorEnum { PLUS, MINUS, MULTIPLY, DIVIDE };
+enum class BinaryOperatorEnum { PLUS, MINUS, MUL, DIV };
 enum class UnaryOperatorEnum { MINUS };
 
 struct Node {

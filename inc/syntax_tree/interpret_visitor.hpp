@@ -22,13 +22,15 @@ public:
       st.push_back(operand1 + operand2);
       break;
     case BinaryOperatorEnum::MINUS:
-      st.push_back(operand1 - operand2);
+      st.push_back(operand2 - operand1);
       break;
-    case BinaryOperatorEnum::MULTIPLY:
+    case BinaryOperatorEnum::MUL:
       st.push_back(operand1 * operand2);
       break;
-    case BinaryOperatorEnum::DIVIDE:
-      st.push_back(operand1 / operand2);
+    case BinaryOperatorEnum::DIV:
+      if (operand1 == 0)
+        throw std::logic_error("Division by zero encountered, failing...\n");
+      st.push_back(operand2 / operand1);
       break;
     default:
       throw std::logic_error("Unknown Binary operator type in Dump Visitor");
