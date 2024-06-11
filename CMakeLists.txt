@@ -18,6 +18,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
+include_directories(${PROJECT_SOURCE_DIR}/build/src/flex_bison_sources)
 include_directories(${PROJECT_SOURCE_DIR}/inc)
 add_subdirectory(src)
 add_subdirectory(tests)
