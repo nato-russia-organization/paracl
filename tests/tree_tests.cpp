@@ -68,3 +68,23 @@ TEST_F(TreeTest, DivisionByZero) {
 
   EXPECT_THROW(interpret(tree.get_root()), std::logic_error);
 }
+
+TEST_F(TreeTest, EverythingEverywhere) {
+  tree.add_root(std::make_unique<BinaryOperator>(BinaryOperatorEnum::PLUS));
+  tree.add_child_to_node(*tree.get_root(), std::make_unique<Number>(3));
+  auto div = tree.add_child_to_node(
+      *tree.get_root(),
+      std::make_unique<BinaryOperator>(BinaryOperatorEnum::DIV));
+  auto mul = tree.add_child_to_node(
+      *tree.get_root(),
+      std::make_unique<BinaryOperator>(BinaryOperatorEnum::MUL));
+  auto sub = tree.add_child_to_node(
+      *mul, std::make_unique<BinaryOperator>(BinaryOperatorEnum::MINUS));
+  tree.add_child_to_node(*div, std::make_unique<Number>(1));
+  tree.add_child_to_node(*div, std::make_unique<Number>(2));
+  tree.add_child_to_node(*mul, std::make_unique<Number>(7));
+  tree.add_child_to_node(*sub, std::make_unique<Number>(8));
+  tree.add_child_to_node(*sub, std::make_unique<Number>(1));
+
+  EXPECT_EQ(interpret(tree.get_root()), 49.5);
+}
