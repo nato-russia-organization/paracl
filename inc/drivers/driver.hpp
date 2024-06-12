@@ -9,10 +9,10 @@
 namespace paracl {
 
 class ParaclDriver final {
-public:
-  ParaclDriver() = default;
 
-  void parse(const char *filename);
+public:
+  ParaclDriver(bool trace_scanning = false) : trace_scanning{trace_scanning} {}
+
   void parse(std::istream &iss);
 
   void add_upper();
@@ -34,6 +34,8 @@ private:
   paracl::ParaclParser *parser = nullptr;
   paracl::ParaclLexer *lexer = nullptr;
 
+  bool trace_scanning;
+
   /** define some pretty colors **/
   const std::string red = "\033[1;31m";
   const std::string blue = "\033[1;36m";
@@ -41,3 +43,4 @@ private:
 };
 
 } // namespace paracl
+//

@@ -11,6 +11,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 find_package(FLEX)
 find_package(BISON)
 
+add_compile_options("-std=c++20")
+
 include(FetchContent)
 FetchContent_Declare(
   googletest

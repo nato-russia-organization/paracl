@@ -1,6 +1,5 @@
 %skeleton "lalr1.cc"
-%require  "3.0"
-%debug 
+%require  "3.2"
 %defines 
 %define api.namespace {paracl}
 %define api.parser.class {ParaclParser}
@@ -9,52 +8,98 @@
    namespace paracl {
       class ParaclDriver;
       class ParaclLexer;
+      
+      #include <cstddef>
+      struct Location final {
+        size_t line;
+        size_t column;
+      };
+
+      struct LocationRange final {
+        Location begin; 
+        Location end;
+
+        void step() {
+          begin = end;
+        }
+
+        void columns(size_t width) {
+          end.column += width;
+        }
+
+        void lines(size_t len) {
+          end.line += len;
+        }
+      };
+
+      #include <iostream>
+      std::ostream& operator<< (std::ostream& os, const LocationRange& loc) {
+        os << "From: (" << loc.begin.line << ", " << loc.begin.column << "); " 
+           << "To: (" << loc.end.line << ", " << loc.end.column << ")"; 
+        return os;
+      }
+
    }
 }
 
-%parse-param { ParaclLexer  &lexer  }
-%parse-param { ParaclDriver  &driver  }
+%param { ParaclDriver  &driver  }
+%param { location_type &loc}
+%parse-param { ParaclLexer &lexer }
 
 %code{
    #include <iostream>
    #include <cstdlib>
    #include <fstream>
    
-   /* include for all driver functions */
-   #include <drivers/driver.hpp>
    #include <drivers/lexer_class.hpp> 
+   #include <syntax_tree/tree.hpp>
+    
 #undef yylex
 #define yylex lexer.yylex
 }
 
 %define api.value.type variant
 %define parse.assert
+%define api.token.raw
+%define api.token.constructor
+%define parse.trace
+%define parse.error detailed
+%define parse.lac full
+%define api.token.prefix {TOK_}
 
-%token               END    0     "end of file"
-%token               UPPER
-%token               LOWER
-%token <std::string> WORD
-%token               NEWLINE
-%token               CHAR
-
+%define api.location.type {paracl::LocationRange}
 %locations
+
+
+%token <double> NUMBER "number"
+%token
+  MINUS   "-"
+  PLUS    "+"
+  MUL    "*"
+  DIV   "/"
+  LPAR  "("
+  RPAR  ")"
+  END "<<EOF>>"
+;
+
+%nterm <double> expr
+%nterm <double> unit 
+%left "+" "-"
+%left "*" "/"
 
 %%
 
-list_option : END | list END;
+%start unit;
 
-list
-  : item
-  | list item
-  ;
+unit : expr {};
 
-item
-  : UPPER   { driver.add_upper(); }
-  | LOWER   { driver.add_lower(); }
-  | WORD    { driver.add_word( $1 ); }
-  | NEWLINE { driver.add_newline(); }
-  | CHAR    { driver.add_char(); }
-  ;
+expr:
+   "number"
+ | expr "+" expr { $$ = $1 + $3; }
+ | expr "-" expr { $$ = $1 - $3; }
+ | expr "*" expr { $$ = $1 * $3; }
+ | expr "/" expr { $$ = $1 / $3; }
+ | "(" expr ")"  { $$ = $2; };
 
 %%
 

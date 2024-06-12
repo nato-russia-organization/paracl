@@ -1,11 +1,14 @@
 %{
 /* C++ string header, for string ops below */
 #include <string>
-
+#include <syntax_tree/tree.hpp>
 /* Implementation of yyFlexScanner */ 
 #include <drivers/lexer_class.hpp>
-#undef  YY_DECL
-#define YY_DECL int paracl::ParaclLexer::yylex( paracl::ParaclParser::semantic_type * const lval, paracl::ParaclParser::location_type *location )
+#include <parser.hpp>
+
+#undef YY_DECL
+#define YY_DECL                                                                \
+  paracl::ParaclParser::symbol_type paracl::ParaclLexer::yylex(paracl::ParaclDriver &driver, paracl::ParaclParser::location_type &loc)
 
 /* using "token" to make the returns for the tokens shorter to type */
 using token = paracl::ParaclParser::token;
@@ -17,40 +20,35 @@ using token = paracl::ParaclParser::token;
 #define YY_NO_UNISTD_H
 
 /* update location on matching */
-#define YY_USER_ACTION loc->step(); loc->columns(yyleng);
+#define YY_USER_ACTION loc.step(); loc.columns(yyleng);
 
 %}
 
-%require "3.2"
-
+%option noyywrap nounput noinput batch
 %option debug
-%option nodefault
 %option yyclass="paracl::ParaclScanner"
-%option noyywrap
 %option c++
 
-%define api.value.type variant
 
 DIGIT    [0-9]
    
 %%
 
-"-"            {return MINUS;}
-"+"            {return PLUS;}
-"*"            {return MULT;}
-"/"            {return DIV;}
-"="            {return EQUAL;}
-"("            {return L_PAREN;}
-")"            {return R_PAREN;}
+
+"-"            {return paracl::ParaclParser::make_MINUS(loc);}
+"+"            {return paracl::ParaclParser::make_PLUS(loc);}
+"*"            {return paracl::ParaclParser::make_MUL(loc);}
+"/"            {return paracl::ParaclParser::make_DIV(loc);}
+"("            {return paracl::ParaclParser::make_LPAR(loc);}
+")"            {return paracl::ParaclParser::make_RPAR(loc);}
 
 (\.{DIGIT}+)|({DIGIT}+(\.{DIGIT}*)?([eE][+-]?[0-9]+)?)   {
-  yylval.dval = atof(yytext); 
-  return NUMBER;
+  double val = atof(yytext); 
+  return paracl::ParaclParser::make_NUMBER(val, loc);;
 }
 
-[ \t]+         {/* ignore spaces */}
+[ \t\n]+         {/* ignore spaces */}
 
-"\n"           {return END;}
 
 .              {printf("Error at line %d: unrecognized symbol \"%s\"\n", yylloc.first_line, yytext); exit(0);}
 %%
