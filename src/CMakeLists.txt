@@ -1,1 +1,2 @@
 add_subdirectory(flex_bison_sources)
+add_subdirectory(paracli)

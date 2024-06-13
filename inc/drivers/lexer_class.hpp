@@ -19,7 +19,7 @@ public:
   // get rid of override virtual function warning
 
   ParaclParser::symbol_type
-  yylex(paracl::ParaclDriver &driver,
+  yylex(paracl::driver::ParaclDriver &driver,
         paracl::ParaclParser::location_type &location);
   // YY_DECL defined in mc_lexer.l
   // Method body created by flex in mc_lexer.yy.cc

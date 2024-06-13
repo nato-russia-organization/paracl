@@ -8,13 +8,13 @@
 
 #undef YY_DECL
 #define YY_DECL                                                                \
-  paracl::ParaclParser::symbol_type paracl::ParaclLexer::yylex(paracl::ParaclDriver &driver, paracl::ParaclParser::location_type &loc)
+  paracl::ParaclParser::symbol_type paracl::ParaclLexer::yylex(paracl::driver::ParaclDriver &driver, paracl::ParaclParser::location_type &loc)
 
 /* using "token" to make the returns for the tokens shorter to type */
 using token = paracl::ParaclParser::token;
 
 /* define yyterminate as this instead of NULL */
-#define yyterminate() return( token::END )
+#define yyterminate() return( paracl::ParaclParser::make_END(loc) )
 
 /* msvc2010 requires that we exclude this header file. */
 #define YY_NO_UNISTD_H
@@ -50,5 +50,5 @@ DIGIT    [0-9]
 [ \t\n]+         {/* ignore spaces */}
 
 
-.              {printf("Error at line %d: unrecognized symbol \"%s\"\n", yylloc.first_line, yytext); exit(0);}
+.              {printf("Error at line SOMEWHERE: unrecognized symbol \"%s\"\n", yytext); exit(0);}
 %%

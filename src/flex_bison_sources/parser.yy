@@ -5,44 +5,22 @@
 %define api.parser.class {ParaclParser}
 
 %code requires{
+
+   #include <cstddef>
+   #include <iostream>
+   #include <location/locationRange.hpp>
+   
    namespace paracl {
-      class ParaclDriver;
-      class ParaclLexer;
-      
-      #include <cstddef>
-      struct Location final {
-        size_t line;
-        size_t column;
-      };
-
-      struct LocationRange final {
-        Location begin; 
-        Location end;
-
-        void step() {
-          begin = end;
-        }
-
-        void columns(size_t width) {
-          end.column += width;
-        }
-
-        void lines(size_t len) {
-          end.line += len;
-        }
-      };
-
-      #include <iostream>
-      std::ostream& operator<< (std::ostream& os, const LocationRange& loc) {
-        os << "From: (" << loc.begin.line << ", " << loc.begin.column << "); " 
-           << "To: (" << loc.end.line << ", " << loc.end.column << ")"; 
-        return os;
+      namespace driver {
+        class ParaclDriver;
       }
+
+      class ParaclLexer;
 
    }
 }
 
-%param { ParaclDriver  &driver  }
+%param { driver::ParaclDriver  &driver  }
 %param { location_type &loc}
 %parse-param { ParaclLexer &lexer }
 
@@ -67,7 +45,7 @@
 %define parse.lac full
 %define api.token.prefix {TOK_}
 
-%define api.location.type {paracl::LocationRange}
+%define api.location.type {paracl::location_namespace::LocationRange}
 %locations
 
 
@@ -79,7 +57,7 @@
   DIV   "/"
   LPAR  "("
   RPAR  ")"
-  END "<<EOF>>"
+  END 0 "end of file"
 ;
 
 %nterm <double> expr
@@ -91,7 +69,7 @@
 
 %start unit;
 
-unit : expr {};
+unit : expr END { std::cout << "Result: " << $1 << std::endl; };
 
 expr:
    "number"

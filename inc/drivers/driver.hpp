@@ -1,46 +1,56 @@
 #pragma once
 
-#include <cstddef>
 #include <istream>
+#include <stdexcept>
 #include <string>
 
 #include "lexer_class.hpp"
+#include <location/locationRange.hpp>
 
 namespace paracl {
-
+namespace driver {
 class ParaclDriver final {
 
 public:
   ParaclDriver(bool trace_scanning = false) : trace_scanning{trace_scanning} {}
 
-  void parse(std::istream &iss);
+  void parse(std::istream &iss) {
+    if (!iss.good() && iss.eof()) {
+      return;
+    }
 
-  void add_upper();
-  void add_lower();
-  void add_word(const std::string &word);
-  void add_newline();
-  void add_char();
+    delete (lexer);
+    lexer = new paracl::ParaclLexer(&iss);
 
-  std::ostream &print(std::ostream &stream);
+    delete (parser);
+    parser = new paracl::ParaclParser(*this, loc, *lexer);
+
+    if (parser->parse() != 0)
+      throw std::runtime_error("Parse failed");
+
+    return;
+  }
+
+  ~ParaclDriver() {
+    delete (lexer);
+    lexer = nullptr;
+    delete (parser);
+    parser = nullptr;
+  }
 
 private:
-  void parse_helper(std::istream &stream);
-
-  std::size_t chars = 0;
-  std::size_t words = 0;
-  std::size_t lines = 0;
-  std::size_t uppercase = 0;
-  std::size_t lowercase = 0;
   paracl::ParaclParser *parser = nullptr;
   paracl::ParaclLexer *lexer = nullptr;
 
   bool trace_scanning;
+
+  location_namespace::LocationRange loc;
 
   /** define some pretty colors **/
   const std::string red = "\033[1;31m";
   const std::string blue = "\033[1;36m";
   const std::string norm = "\033[0m";
 };
-
+} // namespace driver
 } // namespace paracl
 //
