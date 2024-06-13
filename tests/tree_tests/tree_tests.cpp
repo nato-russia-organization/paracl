@@ -88,3 +88,40 @@ TEST_F(TreeTest, EverythingEverywhere) {
 
   EXPECT_EQ(interpret(tree.get_root()), 49.5);
 }
+
+TEST_F(TreeTest, StaticConstructor) {
+  Ast tree1;
+  tree1.add_root(std::make_unique<BinaryOperator>(BinaryOperatorEnum::PLUS));
+  tree1.add_child_to_node(*tree1.get_root(), std::make_unique<Number>(3));
+  auto div1 = tree1.add_child_to_node(
+      *tree1.get_root(),
+      std::make_unique<BinaryOperator>(BinaryOperatorEnum::DIV));
+  auto mul1 = tree1.add_child_to_node(
+      *tree1.get_root(),
+      std::make_unique<BinaryOperator>(BinaryOperatorEnum::MUL));
+  auto sub1 = tree1.add_child_to_node(
+      *mul1, std::make_unique<BinaryOperator>(BinaryOperatorEnum::MINUS));
+  tree1.add_child_to_node(*div1, std::make_unique<Number>(1));
+  tree1.add_child_to_node(*div1, std::make_unique<Number>(2));
+  tree1.add_child_to_node(*mul1, std::make_unique<Number>(7));
+  tree1.add_child_to_node(*sub1, std::make_unique<Number>(8));
+  tree1.add_child_to_node(*sub1, std::make_unique<Number>(1));
+
+  Ast tree2;
+  tree2.add_root(std::make_unique<BinaryOperator>(BinaryOperatorEnum::PLUS));
+  tree2.add_child_to_node(*tree2.get_root(), std::make_unique<Number>(3));
+  auto minus2 = tree2.add_child_to_node(
+      *tree2.get_root(),
+      std::make_unique<BinaryOperator>(BinaryOperatorEnum::MINUS));
+  tree2.add_child_to_node(*minus2, std::make_unique<Number>(0));
+  tree2.add_child_to_node(*minus2, std::make_unique<Number>(1));
+
+  std::vector<Ast> trees;
+  trees.push_back(std::move(tree1));
+  trees.push_back(std::move(tree2));
+
+  tree = Ast::create_tree_from_root_and_subtrees(
+      std::make_unique<BinaryOperator>(BinaryOperatorEnum::MUL), trees);
+
+  EXPECT_EQ(interpret(tree.get_root()), 99);
+}
