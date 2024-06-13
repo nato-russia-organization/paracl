@@ -44,7 +44,7 @@ public:
     requires std::derived_from<NodeType, Node>
   [[nodiscard]] static Ast
   create_tree_from_root_and_subtrees(std::unique_ptr<NodeType> &&root,
-                                     const std::vector<Ast> &trees) {
+                                     std::vector<Ast> &trees) {
     Ast ast(std::move(root));
 
     ast.valid_node_aux_data = false;
@@ -54,8 +54,8 @@ public:
                        std::make_move_iterator(tree.nodes.begin()),
                        std::make_move_iterator(tree.nodes.end()));
 
-      Node *tree_root = nullptr;
-      std::swap(tree_root, tree.root);
+      Node *tree_root = tree.root;
+      tree.root = nullptr;
 
       ast.root->add_child(tree_root);
     }
