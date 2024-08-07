@@ -121,7 +121,8 @@ TEST_F(TreeTest, StaticConstructor) {
   trees.push_back(std::move(tree2));
 
   tree = Ast::create_tree_from_root_and_subtrees(
-      std::make_unique<BinaryOperator>(BinaryOperatorEnum::MUL), trees);
+      std::make_unique<BinaryOperator>(BinaryOperatorEnum::MUL),
+      std::move(trees));
 
   EXPECT_EQ(interpret(tree.get_root()), 99);
 }

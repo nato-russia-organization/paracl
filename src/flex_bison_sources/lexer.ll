@@ -43,8 +43,12 @@ DIGIT    [0-9]
 ")"            {return paracl::ParaclParser::make_RPAR(loc);}
 
 (\.{DIGIT}+)|({DIGIT}+(\.{DIGIT}*)?([eE][+-]?[0-9]+)?)   {
-  double val = atof(yytext); 
-  return paracl::ParaclParser::make_NUMBER(val, loc);;
+  double val = atof(yytext);
+
+  auto tree = std::make_unique<paracl::ast::Ast>(paracl::ast::Ast::create_tree_from_root_and_subtrees
+                          (std::make_unique<paracl::ast::Number>(val), std::vector<paracl::ast::Ast>{})); 
+
+  return paracl::ParaclParser::make_NUMBER(std::move(tree), loc);;
 }
 
 [ \t\n]+         {/* ignore spaces */}
